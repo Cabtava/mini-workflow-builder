@@ -1,0 +1,46 @@
+@inject IJSRuntime JS
+
+<div class="d-flex flex-column align-items-center gap-3 py-3">
+    @foreach (var tool in Tools)
+    {
+        <div class="d-flex flex-column align-items-center text-center" draggable="true"
+            @ondragstart="(e) => OnDragStart(e, tool.Type)">
+            <img src="@tool.IconPath" alt="@tool.Label" title="@tool.Label" class="toolbar-icon mb-1" />
+            <small class="text-muted" style="font-size: 0.6rem;">@tool.Label</small>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public EventCallback<string> OnToolDrag { get; set; }
+
+    private List<ToolItem> Tools = new()
+{
+new ToolItem("Start", "start_icon.svg"),
+new ToolItem("If", "if_condition_icon.svg"),
+new ToolItem("Switch", "switch.svg"),
+new ToolItem("ForEach", "for_each_icon.svg"),
+new ToolItem("Scope", "scope.svg"),
+new ToolItem("End", "end_icon.svg")
+};
+
+    private async void OnDragStart(DragEventArgs e, string type)
+    {
+        await JS.InvokeVoidAsync("dragHelper.setDragData", e, type);
+        await OnToolDrag.InvokeAsync(type);
+    }
+
+    private class ToolItem
+    {
+        public string Label { get; }
+        public string FileName { get; }
+        public string IconPath => $"icons/{FileName}";
+        public string Type => Label;
+
+        public ToolItem(string label, string fileName)
+        {
+            Label = label;
+            FileName = fileName;
+        }
+    }
+}
